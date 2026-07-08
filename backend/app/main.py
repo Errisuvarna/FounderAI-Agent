@@ -3,10 +3,14 @@ FounderAI backend entrypoint.
 Wires up FastAPI, CORS, MongoDB lifecycle events, and all API routers.
 """
 import logging
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.api.routes import auth, generate, profile
 from app.core.config import settings
@@ -34,7 +38,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_ORIGIN],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +55,24 @@ async def health_check():
     return {"status": "ok", "service": "founderai-backend"}
 
 
-@app.get("/", tags=["health"])
-async def root():
-    return {"message": "FounderAI API is running. See /docs for API documentation."}
+# Mount static files and serve frontend
+STATIC_DIR = Path(__file__).parent.parent.parent / "frontend" / "dist"
+if STATIC_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve frontend for all non-API routes."""
+        # Skip API routes
+        if full_path.startswith("api/") or full_path.startswith("health") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            return {"message": "API route not found"}
+        
+        file_path = STATIC_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        # For SPA routing, return index.html
+        return FileResponse(STATIC_DIR / "index.html")
+else:
+    @app.get("/", tags=["health"])
+    async def root():
+        return {"message": "FounderAI API is running. See /docs for API documentation."}
