@@ -33,7 +33,8 @@ class Settings(BaseSettings):
 
     # App
     APP_ENV: str = "development"
-    APP_PORT: int = 8000
+    PORT: int = 8000  # Render provides this
+    APP_PORT: int = 8000  # Fallback
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
