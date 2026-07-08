@@ -5,6 +5,7 @@ tasks, then executes the crew and shapes the raw outputs into the
 structured blueprint format persisted to MongoDB.
 """
 import logging
+import time
 from typing import Any
 
 from crewai import Crew, Process
@@ -44,8 +45,35 @@ def run_startup_crew(
         verbose=True,
     )
 
-    # 3. Kick off the crew (blocking call — run in a threadpool from the route layer)
-    crew.kickoff()
+    # 3. Kick off the crew with retry logic for rate limits
+    max_retries = 3
+    retry_delay = 5  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            crew.kickoff()
+            break  # Success, exit retry loop
+        except Exception as e:
+            error_msg = str(e)
+            if "rate" in error_msg.lower() or "quota" in error_msg.lower() or "429" in error_msg:
+                if attempt < max_retries - 1:
+                    wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                    logger.warning(
+                        "Rate limit hit (attempt %d/%d). Retrying in %d seconds...",
+                        attempt + 1,
+                        max_retries,
+                        wait_time
+                    )
+                    time.sleep(wait_time)
+                else:
+                    logger.error("Rate limit exceeded after %d attempts. Please try again later.", max_retries)
+                    raise Exception(
+                        "API rate limit exceeded. Please wait a few minutes and try again, "
+                        "or consider upgrading your Gemini API tier for higher limits."
+                    ) from e
+            else:
+                # Not a rate limit error, raise immediately
+                raise
 
     # 4. Collect each task's raw output
     market_research_output = str(tasks["market_research"].output)

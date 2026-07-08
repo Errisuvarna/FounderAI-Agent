@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # Gemini
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini/gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini/gemini-1.5-flash"
     GEMINI_EMBEDDING_MODEL: str = "models/text-embedding-004"
 
     # Tools
