@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  founderai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DB_NAME=founderai
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=gemini/gemini-2.5-flash
+      - GEMINI_EMBEDDING_MODEL=models/text-embedding-004
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - CHROMA_PERSIST_DIR=./chroma_data
+      - FRONTEND_ORIGIN=*
+      - APP_ENV=production
+      - PORT=8000
+    volumes:
+      - chroma_data:/app/backend/chroma_data
+
+volumes:
+  chroma_data:

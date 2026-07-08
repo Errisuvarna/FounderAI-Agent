@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+frontend/dist/
+frontend/.vite/
+
+# Environment
+.env
+.env.*
+backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Database
+*.sqlite3
+chroma_data/
+backend/chroma_data/
+
+# Logs
+*.log
+
+# Build scripts
+build.sh
+start.sh
